@@ -278,7 +278,7 @@ class LatentPoseFaceCropper(FaceCropper):
         image_cropped = cv2.resize(image_cropped, self.output_size,
             interpolation=cv2.INTER_CUBIC if self.output_size[1] > bbox[3] - bbox[1] else cv2.INTER_AREA)
 
-        return image_cropped, landmarks if compute_landmarks else None
+        return image_cropped, landmarks if compute_landmarks else None, [t,l,b,r]
 
     def detect_faces(self, images):
         """
@@ -347,10 +347,6 @@ class LatentPoseFaceCropper(FaceCropper):
         t_clamp, b_clamp = max(0, t), min(b, image.shape[0])
         l_clamp, r_clamp = max(0, l), min(r, image.shape[1])
         image = image[t_clamp:b_clamp, l_clamp:r_clamp]
-        
-        #Salva coordenadas do crop
-        crop_tblr = [t_clamp,b_clamp, l_clamp,r_clamp, t, b, l, r]
-        np.save(os.path.join(self.path, 'crop_%05d.npy' % self.index), crop_tblr)
         
         # If the bounding box went outside of the image, restore those areas by padding
         padding = [t_clamp - t, b - b_clamp, l_clamp - l, r - r_clamp]
@@ -577,11 +573,14 @@ class FolderWriter(ImageWriter):
 
         self.index = 0
 
-    def add(self, image, extra_data=None):
+    def add(self, image, extra_data=None, tblr_crop=None):
         cv2.imwrite(os.path.join(self.path, '%05d.jpg' % self.index), image)
 
         if extra_data is not None:
             np.save(os.path.join(self.path, '%05d.npy' % self.index), extra_data)
+            
+        if tblr_crop is not None:
+            np.save(os.path.join(self.path, 'crop_%05d.npy' % self.index), tblr_crop)
 
         self.index += 1
 
@@ -613,7 +612,7 @@ class VideoWriter(ImageWriter):
         self.fps = 25.0 if fps is None else fps
         self.video_writer = None
 
-    def add(self, image, extra_data=None):
+    def add(self, image, extra_data=None, tblr_crop=None):
         if self.video_writer is None:
             self.video_writer = cv2.VideoWriter(
                 self.path, self.fourcc, self.fps, image.shape[1::-1])
@@ -625,11 +624,14 @@ class SingleImageWriter(ImageWriter):
     def __init__(self, path):
         self.path = str(path)
 
-    def add(self, image, extra_data=None):
+    def add(self, image, extra_data=None, tblr_crop=None):
         cv2.imwrite(self.path, image)
 
         if extra_data:
             np.save(os.path.splitext(self.path)[0] + '.npy', extra_data)
+        
+        if tblr_crop is not None:
+            np.save(os.path.join(self.path, 'crop_%05d.npy' % self.index), tblr_crop)
 
 class ScreenWriter(ImageWriter):
     def add(self, image):
@@ -692,7 +694,7 @@ if __name__ == '__main__':
             resize_ratio = 1152 / max(input_image.shape)
             input_image = cv2.resize(input_image, dsize=None, fx=resize_ratio, fy=resize_ratio)
 
-        image_cropped, extra_data = cropper.crop_image(input_image)
+        image_cropped, extra_data, crop_tlbr = cropper.crop_image(input_image)
         if not args.save_extra_data:
             extra_data = None
-        image_writer.add(image_cropped, extra_data)
+        image_writer.add(image_cropped, extra_data, crop_tlbr)
