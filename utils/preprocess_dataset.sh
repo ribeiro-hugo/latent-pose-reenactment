@@ -33,13 +33,13 @@
 set -e
 
 # Please use an ABSOLUTE path here!
-DATASET_ROOT="/Vol1/dbstore/datasets/violet/VoxCeleb2_test_finetuning"
+DATASET_ROOT="/content/dataset"
 
 # echo "Unnamed: 0,path" > $dataset_dir/split.csv
 
 # Initialize `IDENTITIES` -- the list of folders (paths relative to $DATASET_ROOT/images
 # or $DATASET_ROOT/videos), each containing raw images or one video of some person.
-cd "$DATASET_ROOT/images" # or e.g. `"$DATASET_ROOT/videos"`
+cd "$DATASET_ROOT/videos" # or e.g. `"$DATASET_ROOT/videos"`
 IDENTITIES=(*) # or `(*/*)`, or whatever else
 cd -
 
@@ -57,7 +57,7 @@ echo "Got ${#IDENTITIES[@]} folders, will process from ${FIRST_IDX}-th to ${LAST
 
 # Switch off (set to `false` or comment out) unnecessary operations
 DO_DECODE_VIDEOS=\
-false
+true
 
 DO_CROP=\
 true
@@ -81,7 +81,7 @@ if [ "$DO_DECODE_VIDEOS" = true ]; then
         if (($i >= $FIRST_IDX && $i < $LAST_IDX)); then
             IMAGES_OUTPUT="$DATASET_ROOT/images/$IDENTITY"
             mkdir -p "$IMAGES_OUTPUT"
-            ffmpeg -hide_banner -i "$DATASET_ROOT/videos/${IDENTITY}"* -q:v 2 "$IMAGES_OUTPUT/%05d.jpg"
+            ffmpeg -hide_banner -i "$DATASET_ROOT/videos/${IDENTITY}/"* -q:v 2 "$IMAGES_OUTPUT/%05d.jpg"
         fi
         let "i += 1"
     done
