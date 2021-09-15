@@ -77,7 +77,7 @@ if __name__ == '__main__':
         logger.info(f"Loading dataloader '{saved_args.dataloader}'")
         dataloader = Dataloader(saved_args.dataloader).get_dataloader(saved_args, part='val', phase='val')
 
-        current_output_path = (args.destination / string_to_valid_filename(driver_images_path)).with_suffix('.mp4')
+        current_output_path = (args.destination / string_to_valid_filename(driver_images_path)).with_suffix('.avi')
         current_output_path.parent.mkdir(parents=True, exist_ok=True)
         image_writer = ImageWriter.get_image_writer(current_output_path)
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
             def torch_to_opencv(image):
                 image = image.permute(1,2,0).clamp_(0, 1).mul_(255).cpu().byte().numpy()
-                return cv2.cvtColor(image, cv2.COLOR_RGB2BGR, dst=image)
+                return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
             result = torch_to_opencv(data_dict['fake_rgbs'][0])
             pose_driver = torch_to_opencv(data_dict['pose_input_rgbs'][0, 0])
