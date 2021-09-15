@@ -347,7 +347,11 @@ class LatentPoseFaceCropper(FaceCropper):
         t_clamp, b_clamp = max(0, t), min(b, image.shape[0])
         l_clamp, r_clamp = max(0, l), min(r, image.shape[1])
         image = image[t_clamp:b_clamp, l_clamp:r_clamp]
-
+        
+        #Salva coordenadas do crop
+        crop_tblr = [t_clamp,b_clamp, l_clamp,r_clamp, t, b, l, r]
+        np.save(os.path.join(self.path, 'crop_%05d.npy' % self.index), crop_tblr)
+        
         # If the bounding box went outside of the image, restore those areas by padding
         padding = [t_clamp - t, b - b_clamp, l_clamp - l, r - r_clamp]
         if sum(padding) == 0: # = if the bbox fully fit into image
