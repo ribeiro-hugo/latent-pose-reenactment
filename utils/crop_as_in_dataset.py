@@ -697,4 +697,5 @@ if __name__ == '__main__':
         image_cropped, extra_data, crop_tlbr = cropper.crop_image(input_image)
         if not args.save_extra_data:
             extra_data = None
-        image_writer.add(image_cropped, extra_data, crop_tlbr)
+        #image_writer.add(image_cropped, extra_data, crop_tlbr) #se eu quiser salvar as coordenadas, mas da erro no finetune
+        image_writer.add(image_cropped, extra_data, None)
